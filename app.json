@@ -1,0 +1,46 @@
+{
+  "expo": {
+    "name": "trek-a-comm_ai_translator",
+    "slug": "trek-a-comm_ai_translator",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "myapp",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/images/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff",
+      "plugins": [
+        [
+          "@react-native-voice/voice",
+          {
+            "microphonePermission": "Allow Voice to Text Tutorial to access the microphone",
+            "speechRecognitionPermission": "Allow Voice to Text Tutorial to securely recognize user speech"
+          }
+        ]
+      ]
+    },
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      }
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static",
+      "favicon": "./assets/images/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-localization"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

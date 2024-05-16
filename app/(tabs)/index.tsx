@@ -119,6 +119,7 @@ const SpeechInputScreen: React.FC = () => {
     try {
       const response = await axios.post('http://192.168.43.70:5000/translate', {
         text: text,
+        source_language: selectedInputLanguage,
         dest_language: selectedOutputLanguage,
       });
 

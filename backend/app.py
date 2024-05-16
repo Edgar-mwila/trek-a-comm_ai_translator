@@ -49,18 +49,19 @@ def speech_to_text():
 @app.route('/translate', methods=['POST'])
 def translate():
     data = request.get_json()
-    print(f"Received data: {data}")  # Debugging statement
-
-    if not data or 'text' not in data or 'dest_language' not in data:
-        return jsonify({"error": "Invalid payload"}), 400
+    if not data or 'text' not in data or 'source_language' not in data or 'dest_language' not in data:
+        return jsonify({"error": "Invalid request"}), 400
 
     text = data['text']
+    source_language = data['source_language']
     dest_language = data['dest_language']
 
-    translated_text = translate_text(text, dest_language)
-
-    return jsonify({"translated_text": translated_text})
-
+    try:
+        translator = Translator(to_lang=dest_language, from_lang=source_language)
+        translated_text = translator.translate(text)
+        return jsonify({"translated_text": translated_text})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 if __name__ == "__main__":

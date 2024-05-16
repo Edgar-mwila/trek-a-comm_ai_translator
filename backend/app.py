@@ -25,20 +25,16 @@ def speech_to_text():
     audio_file = request.files['audio_file']
 
     try:
-        # Convert the audio file to the right format if needed
         audio_data = AudioSegment.from_file(io.BytesIO(audio_file.read()))
 
-        # Save the audio file temporarily
         audio_path = "temp_audio.wav"
         audio_data.export(audio_path, format="wav")
 
-        # Recognize speech using SpeechRecognition
         recognizer = sr.Recognizer()
         with sr.AudioFile(audio_path) as source:
             audio = recognizer.record(source)
             text = recognizer.recognize_google(audio)
 
-        # Remove the temporary file
         os.remove(audio_path)
 
         return jsonify({"text": text})

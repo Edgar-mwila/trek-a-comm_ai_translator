@@ -51,10 +51,12 @@ const SpeechInputScreen: React.FC = () => {
   const saveHistory = async () => {
     try {
       if (text.trim() !== '') {
-        const existingHistory = await AsyncStorage.getItem('history');
-        const updatedHistory = existingHistory ? JSON.parse(existingHistory) : [];
-        updatedHistory.push(text);
-        await AsyncStorage.setItem('history', JSON.stringify(updatedHistory));
+        if(translatedText.trim() !== ''){
+          const existingHistory = await AsyncStorage.getItem('history');
+          const updatedHistory = existingHistory ? JSON.parse(existingHistory) : [];
+          updatedHistory.push({input: text, output: translatedText});
+          await AsyncStorage.setItem('history', JSON.stringify(updatedHistory));
+        }
       }
     } catch (error) {
       console.error('Error saving history:', error);
@@ -64,13 +66,17 @@ const SpeechInputScreen: React.FC = () => {
   const saveBookmark = async () => {
     try {
       if (text.trim() !== '') {
-        const existingBookmarks = await AsyncStorage.getItem('bookmarks');
-        const updatedBookmarks = existingBookmarks ? JSON.parse(existingBookmarks) : [];
-        updatedBookmarks.push(text);
-        await AsyncStorage.setItem('bookmarks', JSON.stringify(updatedBookmarks));
-        alert('Bookmark saved successfully!');
+        if(translatedText.trim() !== ''){
+          const existingBookmarks = await AsyncStorage.getItem('bookmarks');
+          const updatedBookmarks = existingBookmarks ? JSON.parse(existingBookmarks) : [];
+          updatedBookmarks.push({input: text, output: translatedText});
+          await AsyncStorage.setItem('bookmarks', JSON.stringify(updatedBookmarks));
+          alert('Bookmark saved successfully!');
+        }else {
+          alert('Please translate text first!');
+        }
       } else {
-        alert('Please enter a valid bookmark text!');
+        alert('Please enter a valid text!');
       }
     } catch (error) {
       console.error('Error saving bookmark:', error);
@@ -126,6 +132,7 @@ const SpeechInputScreen: React.FC = () => {
       if (response.status === 200) {
         const translatedText = response.data.translated_text;
         setTranslatedText(translatedText);
+        saveHistory();
       } else {
         console.error('Failed to translate text:', response.statusText);
       }
@@ -160,7 +167,6 @@ const SpeechInputScreen: React.FC = () => {
         <Button title='clear' onPress={() => setText('')} />
       </View>
       <TouchableOpacity onPress={() => {
-        saveHistory();
         handleTranslate();
       }}>
         <AntDesign name="downcircleo" size={30} color="black" />

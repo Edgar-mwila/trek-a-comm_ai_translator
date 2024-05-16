@@ -1,9 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, FlatList, Button } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+interface HistoryItem {
+  input: string;
+  output: string;
+}
+
 const HistoryTab = () => {
-  const [history, setHistory] = useState([]);
+  const [history, setHistory] = useState<HistoryItem[]>([]);
 
   useEffect(() => {
     const fetchHistory = async () => {
@@ -13,18 +18,37 @@ const HistoryTab = () => {
           setHistory(JSON.parse(storedHistory));
         }
       } catch (error) {
-        console.error('Error fetching histroy:', error);
+        console.error('Error fetching history:', error);
       }
     };
 
     fetchHistory();
   }, []);
 
+  const clearHistory = async () => {
+    try {
+      await AsyncStorage.removeItem('history');
+      setHistory([]);
+      alert('History cleared successfully!');
+    } catch (error) {
+      console.error('Error clearing history:', error);
+      alert('Failed to clear history!');
+    }
+  };
+
   return (
     <View style={styles.container}>
-      {history.map((history, index) => (
-        <Text key={index} style={{}}>**{history}</Text>
-      ))}
+      <FlatList
+        data={history}
+        renderItem={({ item, index }) => (
+          <View key={index} style={styles.historyItemContainer}>
+            <Text style={styles.historyText}>Original: {item.input}</Text>
+            <Text style={styles.historyText}>Translation: {item.output}</Text>
+          </View>
+        )}
+        keyExtractor={(item, index) => index.toString()}
+      />
+      <Button title="Clear History" onPress={clearHistory} />
     </View>
   );
 };
@@ -34,16 +58,14 @@ export default HistoryTab;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    padding: 20,
   },
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
+  historyItemContainer: {
+    padding: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ddd',
   },
-  separator: {
-    marginVertical: 30,
-    height: 1,
-    width: '80%',
+  historyText: {
+    fontSize: 16,
   },
 });

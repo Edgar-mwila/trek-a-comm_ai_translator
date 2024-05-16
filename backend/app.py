@@ -1,0 +1,67 @@
+from flask import Flask, request, jsonify
+import speech_recognition as sr
+from translate import Translator
+from langdetect import detect
+from gtts import gTTS
+from pydub import AudioSegment
+from pydub.utils import which
+import io
+import os
+
+app = Flask(__name__)
+
+def translate_text(text, dest_language):
+    translator = Translator(to_lang=dest_language)
+    translated = translator.translate(text)
+    return translated
+
+AudioSegment.converter = which("ffmpeg")
+
+@app.route('/speech-to-text', methods=['POST'])
+def speech_to_text():
+    if 'audio_file' not in request.files:
+        return jsonify({"error": "No audio file provided"}), 400
+
+    audio_file = request.files['audio_file']
+
+    try:
+        # Convert the audio file to the right format if needed
+        audio_data = AudioSegment.from_file(io.BytesIO(audio_file.read()))
+
+        # Save the audio file temporarily
+        audio_path = "temp_audio.wav"
+        audio_data.export(audio_path, format="wav")
+
+        # Recognize speech using SpeechRecognition
+        recognizer = sr.Recognizer()
+        with sr.AudioFile(audio_path) as source:
+            audio = recognizer.record(source)
+            text = recognizer.recognize_google(audio)
+
+        # Remove the temporary file
+        os.remove(audio_path)
+
+        return jsonify({"text": text})
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/translate', methods=['POST'])
+def translate():
+    data = request.get_json()
+    print(f"Received data: {data}")  # Debugging statement
+
+    if not data or 'text' not in data or 'dest_language' not in data:
+        return jsonify({"error": "Invalid payload"}), 400
+
+    text = data['text']
+    dest_language = data['dest_language']
+
+    translated_text = translate_text(text, dest_language)
+
+    return jsonify({"translated_text": translated_text})
+
+
+
+if __name__ == "__main__":
+    app.run(host='0.0.0.0', port=5000, debug=True)

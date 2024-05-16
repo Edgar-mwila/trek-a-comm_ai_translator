@@ -1,39 +1,52 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { View, Button, Text, TextInput, TouchableOpacity } from 'react-native';
 import { StyleSheet } from 'react-native';
-import { AntDesign } from '@expo/vector-icons'
+import { AntDesign } from '@expo/vector-icons';
 import { Audio } from 'expo-av';
 import { Picker } from '@react-native-picker/picker';
-import * as Speech from 'expo-speech'
-import * as Localization  from 'expo-localization';
+import * as Speech from 'expo-speech';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-
 const SpeechInputScreen: React.FC = () => {
-  const [selectedInputLanguage, setSelectedInputLanguage] = useState();
-  const [selectedOutputLanguage, setSelectedOutputLanguage] = useState();
-  const [translatedText, setTranslatedText] = useState('');
-  const [text, setText] = useState('');
-  const languages = Localization.getLocales();
+  const [selectedInputLanguage, setSelectedInputLanguage] = useState<string | undefined>('en');
+  const [selectedOutputLanguage, setSelectedOutputLanguage] = useState<string | undefined>('es');
+  const [translatedText, setTranslatedText] = useState<string>('');
+  const [text, setText] = useState<string>('');
+  const languages = ['en','es']
   const [recording, setRecording] = useState<Audio.Recording | null>(null);
   const [permissionResponse, requestPermission] = Audio.usePermissions();
 
   const handleSpeechToText = async (recording: Audio.Recording | null) => {
+    if (!recording) return;
+
     try {
-      const { status, data } = await axios.post('http://192.168.43.70:5000/speech-to-text', {
-        audio_content: recording,
-      });
-      if (status === 200) {
-        const text = data.text;
-        setText(text);
-      } else {
-      console.error('Failed to transcribe speech');
-      } 
+        const uri = recording.getURI();
+        if (!uri) return;
+
+        const formData = new FormData();
+        formData.append('audio_file', {
+            uri: uri,
+            type: 'audio/wav',
+            name: 'speech.wav',
+        } as any);
+
+        const response = await axios.post('http://192.168.43.70:5000/speech-to-text', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+
+        if (response.status === 200) {
+            const text = response.data.text;
+            setText(text);
+        } else {
+            console.error('Failed to transcribe speech');
+        }
     } catch (error) {
         console.error('Error fetching transcription:', error);
-      }
-  };  
+    }
+};
 
   const saveHistory = async () => {
     try {
@@ -44,7 +57,7 @@ const SpeechInputScreen: React.FC = () => {
         await AsyncStorage.setItem('history', JSON.stringify(updatedHistory));
       }
     } catch (error) {
-      console.error('Error saving bookmark:', error);
+      console.error('Error saving history:', error);
     }
   };
 
@@ -71,14 +84,14 @@ const SpeechInputScreen: React.FC = () => {
         console.log('Requesting permission..');
         await requestPermission();
       }
-      
+
       await Audio.setAudioModeAsync({
         allowsRecordingIOS: true,
         playsInSilentModeIOS: true,
       });
 
       console.log('Starting recording..');
-      const { recording } = await Audio.Recording.createAsync( Audio.RecordingOptionsPresets.HIGH_QUALITY);
+      const { recording } = await Audio.Recording.createAsync(Audio.RecordingOptionsPresets.HIGH_QUALITY);
       setRecording(recording);
       console.log('Recording started');
     } catch (err) {
@@ -90,26 +103,25 @@ const SpeechInputScreen: React.FC = () => {
     console.log('Stopping recording..');
     setRecording(null);
     await recording?.stopAndUnloadAsync();
-    await Audio.setAudioModeAsync(
-      {
-        allowsRecordingIOS: false,
-      }
-    );
-    handleSpeechToText(recording);
+    await Audio.setAudioModeAsync({ allowsRecordingIOS: false });
     const uri = recording?.getURI();
     console.log('Recording stopped and stored at', uri);
+    if (uri) {
+      handleSpeechToText(recording);
+    }
   }
 
   const speak = (text: string) => {
-    Speech.speak(text)
-  }
+    Speech.speak(text);
+  };
 
   const handleTranslate = async () => {
     try {
       const response = await axios.post('http://192.168.43.70:5000/translate', {
-          text: text,
-          dest_language: selectedOutputLanguage });
-      
+        text: text,
+        dest_language: selectedOutputLanguage,
+      });
+
       if (response.status === 200) {
         const translatedText = response.data.translated_text;
         setTranslatedText(translatedText);
@@ -124,19 +136,19 @@ const SpeechInputScreen: React.FC = () => {
   return (
     <View style={styles.container}>
       <View style={[styles.box, styles.topBox]}>
-        <View style={[styles.languageContainer , {backgroundColor: "lightgray"}]}>
+        <View style={[styles.languageContainer, { backgroundColor: "lightgray" }]}>
           <Picker
             selectedValue={selectedInputLanguage}
             style={{ height: 50, width: 150 }}
             onValueChange={(itemValue) => setSelectedInputLanguage(itemValue)}
           >
             {languages.map((language, index) => (
-              <Picker.Item key={index} label={language.languageTag} value={language.languageCode} />
+              <Picker.Item key={index} label={language} value={language} />
             ))}
           </Picker>
-        <TouchableOpacity onPress={() => saveBookmark()} style={styles.translateButton}>
-          <AntDesign name="staro" size={24} color="black" />
-        </TouchableOpacity>
+          <TouchableOpacity onPress={() => saveBookmark()} style={styles.translateButton}>
+            <AntDesign name="staro" size={24} color="black" />
+          </TouchableOpacity>
         </View>
         <TextInput
           style={styles.inputText}
@@ -144,35 +156,37 @@ const SpeechInputScreen: React.FC = () => {
           onChangeText={setText}
           value={text}
         />
+        <Button title='clear' onPress={() => setText('')} />
       </View>
-        <TouchableOpacity onPress={() => {
-          saveHistory();
-          handleTranslate()
-        }}>
-          <AntDesign name="downcircleo" size={30} color="black" />
-        </TouchableOpacity>
-      <View style={[styles.box, styles.topBox, {}]}>
-        <View style={[styles.languageContainer, {backgroundColor: "lightgray"}]}>
+      <TouchableOpacity onPress={() => {
+        saveHistory();
+        handleTranslate();
+      }}>
+        <AntDesign name="downcircleo" size={30} color="black" />
+      </TouchableOpacity>
+      <View style={[styles.box, styles.topBox]}>
+        <View style={[styles.languageContainer, { backgroundColor: "lightgray" }]}>
           <Picker
             selectedValue={selectedOutputLanguage}
-            style={{ height: 50, width: 150}}
+            style={{ height: 50, width: 150 }}
             onValueChange={(itemValue) => setSelectedOutputLanguage(itemValue)}
           >
             {languages.map((language, index) => (
-              <Picker.Item key={index} label={language.languageTag} value={language.languageCode} />
+              <Picker.Item key={index} label={language} value={language} />
             ))}
           </Picker>
-        <TouchableOpacity onPress={() => speak(translatedText)} style={styles.translateButton}>
-          <AntDesign name="sound" size={24} color="black" />
-        </TouchableOpacity>
+          <TouchableOpacity onPress={() => speak(translatedText)} style={styles.translateButton}>
+            <AntDesign name="sound" size={24} color="black" />
+          </TouchableOpacity>
         </View>
-        <Text>{translatedText}</Text>
+        <Text style={styles.inputText}>{translatedText}</Text>
+        <Button title='clear' onPress={() => setTranslatedText('')} />
       </View>
-    <View style={styles.speechButton}>
-      <TouchableOpacity onPress={recording ? stopRecording : startRecording}>
-        <AntDesign name="sound" color={recording ? "red" :"black"} size={30}/>
-      </TouchableOpacity>
-    </View>
+      <View style={styles.speechButton}>
+        <TouchableOpacity onPress={recording ? stopRecording : startRecording}>
+          <AntDesign name="sound" color={recording ? "red" : "black"} size={30} />
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
@@ -240,3 +254,4 @@ const styles = StyleSheet.create({
     borderRadius: 50,
   },
 });
+

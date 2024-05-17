@@ -1,8 +1,8 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_file
 import speech_recognition as sr
 from translate import Translator
-from langdetect import detect
 from gtts import gTTS
+import time
 from pydub import AudioSegment
 from pydub.utils import which
 import io
@@ -16,6 +16,28 @@ def translate_text(text, dest_language):
     return translated
 
 AudioSegment.converter = which("ffmpeg")
+
+@app.route('/speak', methods=['POST'])
+def speak():
+    data = request.get_json()
+    if not data or 'text' not in data or 'dest_language' not in data:
+        return jsonify({"error": "Invalid request"}), 400
+
+    text = data['text']
+    dest_language = data['dest_language']
+
+    tts = gTTS(text=text, lang=dest_language)
+    timestamp = str(int(time.time()))
+    filename = f"output_{timestamp}.mp3"
+    filepath = os.path.join('/tmp', filename)  # Use the /tmp directory
+
+    try:
+        tts.save(filepath)
+        return send_file(filepath, as_attachment=True)
+    finally:
+        if os.path.exists(filepath):
+            os.remove(filepath)
+
 
 @app.route('/speech-to-text', methods=['POST'])
 def speech_to_text():

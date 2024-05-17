@@ -31,7 +31,7 @@ const SpeechInputScreen: React.FC = () => {
             name: 'speech.wav',
         } as any);
 
-        const response = await axios.post('http://192.168.43.70:5000/speech-to-text', formData, {
+        const response = await axios.post('http://edgarmwila.pythonanywhere.com/speech-to-text', formData, {
             headers: {
                 'Content-Type': 'multipart/form-data',
             },
@@ -123,7 +123,7 @@ const SpeechInputScreen: React.FC = () => {
 
   const handleTranslate = async () => {
     try {
-      const response = await axios.post('http://192.168.43.70:5000/translate', {
+      const response = await axios.post('http://edgarmwila.pythonanywhere.com/translate', {
         text: text,
         source_language: selectedInputLanguage,
         dest_language: selectedOutputLanguage,

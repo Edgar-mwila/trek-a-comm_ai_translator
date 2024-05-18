@@ -1,9 +1,9 @@
 {
   "expo": {
     "name": "TREK-A-COMM AI Translator",
-    "slug": "TREK-A-COMM AI Translator",
+    "slug": "trek-a-comm_ai_translator",
     "version": "1.0.0",
-    "orientation": "portrait",
+    "orientation": "defsult",
     "icon": "./assets/images/icon.jpg",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",

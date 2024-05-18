@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { View, Button, Text, TextInput, TouchableOpacity } from 'react-native';
+import { Button, TextInput, TouchableOpacity, Modal, Pressable } from 'react-native';
+import VideoFrame from '@/components/VideoFrame';
+import { Text, View } from '@/components/Themed';
+import { Link } from 'expo-router';
 import { StyleSheet } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { Audio } from 'expo-av';
@@ -16,6 +19,8 @@ const SpeechInputScreen: React.FC = () => {
   const languages = ['en', 'es'];
   const [recording, setRecording] = useState<Audio.Recording | null>(null);
   const [permissionResponse, requestPermission] = Audio.usePermissions();
+  const [modal, setModal] = useState(true);
+  const video = require('@/assets/images/Trek-A-Comm Translator.mp4')
 
   useEffect(() => {
     (async () => {
@@ -201,7 +206,19 @@ const SpeechInputScreen: React.FC = () => {
           <AntDesign name="sound" color={recording ? "red" : "black"} size={30} />
         </TouchableOpacity>
       </View>
+      {
+        <Modal visible={modal}>
+          <View style={styles.container}>
+              <TouchableOpacity onPress={() => setModal(!modal)}>
+                  <Text style={styles.title}>START TRANSLATOR</Text>
+              </TouchableOpacity>
+            <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
+            <VideoFrame videoSource={video}/>
+          </View>
+        </Modal>
+      }
     </View>
+
   );
 };
 
@@ -237,6 +254,15 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: 10,
     top: 10,
+  },
+    title: {
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  separator: {
+    marginVertical: 30,
+    height: 1,
+    width: '80%',
   },
   languageContainer: {
     flexDirection: 'row',

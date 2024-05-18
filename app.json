@@ -1,15 +1,15 @@
 {
   "expo": {
-    "name": "trek-a-comm_ai_translator",
-    "slug": "trek-a-comm_ai_translator",
+    "name": "TREK-A-COMM AI Translator",
+    "slug": "TREK-A-COMM AI Translator",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/icon.jpg",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "splash": {
-      "image": "./assets/images/splash.png",
-      "resizeMode": "contain",
+      "image": "./assets/images/splash.jpg",
+      "resizeMode": "cover",
       "backgroundColor": "#ffffff",
       "plugins": [
         [
@@ -26,15 +26,21 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "foregroundImage": "./assets/images/adaptive-icon.jpg",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.edgar_dev.trekacomm_ai_translator"
+      "package": "com.edgar_dev.trekacomm_ai_translator",
+      "permissions": [
+        "RECORD_AUDIO",
+        "WRITE_EXTERNAL_STORAGE",
+        "READ_EXTERNAL_STORAGE",
+        "INTERNET"
+      ]
     },
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/favicon.jpg"
     },
     "plugins": [
       "expo-router",

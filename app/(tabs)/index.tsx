@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Button, Text, TextInput, TouchableOpacity } from 'react-native';
 import { StyleSheet } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
@@ -13,48 +13,55 @@ const SpeechInputScreen: React.FC = () => {
   const [selectedOutputLanguage, setSelectedOutputLanguage] = useState<string | undefined>('es');
   const [translatedText, setTranslatedText] = useState<string>('');
   const [text, setText] = useState<string>('');
-  const languages = ['en','es']
+  const languages = ['en', 'es'];
   const [recording, setRecording] = useState<Audio.Recording | null>(null);
   const [permissionResponse, requestPermission] = Audio.usePermissions();
 
+  useEffect(() => {
+    (async () => {
+      if (permissionResponse?.status !== 'granted') {
+        await requestPermission();
+      }
+    })();
+  }, []);
+
   const handleSpeechToText = async (recording: Audio.Recording | null) => {
     if (!recording) return;
-
     try {
-        const uri = recording.getURI();
-        if (!uri) return;
+      const uri = recording.getURI();
+      if (!uri) return;
 
-        const formData = new FormData();
-        formData.append('audio_file', {
-            uri: uri,
-            type: 'audio/wav',
-            name: 'speech.wav',
-        } as any);
+      const formData = new FormData();
+      formData.append('audio_file', {
+        uri: uri,
+        type: 'audio/wav',
+        name: 'speech.wav',
+      } as any);
 
-        const response = await axios.post('http://edgarmwila.pythonanywhere.com/speech-to-text', formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data',
-            },
-        });
+      const response = await axios.post('http://edgarmwila.pythonanywhere.com/speech-to-text', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
 
-        if (response.status === 200) {
-            const text = response.data.text;
-            setText(text);
-        } else {
-            console.error('Failed to transcribe speech');
-        }
+      if (response.status === 200) {
+        const text = response.data.text;
+        setText(text);
+      } else {
+        console.error('Failed to transcribe speech', response);
+      }
     } catch (error) {
-        console.error('Error fetching transcription:', error);
+      console.error('Error fetching transcription:', error);
     }
-};
+  };
 
   const saveHistory = async () => {
     try {
       if (text.trim() !== '') {
-        if(translatedText.trim() !== ''){
+        if (translatedText.trim() !== '') {
           const existingHistory = await AsyncStorage.getItem('history');
           const updatedHistory = existingHistory ? JSON.parse(existingHistory) : [];
-          updatedHistory.push({input: text, output: translatedText});
+          updatedHistory.push({ input: text, output: translatedText });
           await AsyncStorage.setItem('history', JSON.stringify(updatedHistory));
         }
       }
@@ -66,13 +73,13 @@ const SpeechInputScreen: React.FC = () => {
   const saveBookmark = async () => {
     try {
       if (text.trim() !== '') {
-        if(translatedText.trim() !== ''){
+        if (translatedText.trim() !== '') {
           const existingBookmarks = await AsyncStorage.getItem('bookmarks');
           const updatedBookmarks = existingBookmarks ? JSON.parse(existingBookmarks) : [];
-          updatedBookmarks.push({input: text, output: translatedText});
+          updatedBookmarks.push({ input: text, output: translatedText });
           await AsyncStorage.setItem('bookmarks', JSON.stringify(updatedBookmarks));
           alert('Bookmark saved successfully!');
-        }else {
+        } else {
           alert('Please translate text first!');
         }
       } else {
@@ -198,7 +205,9 @@ const SpeechInputScreen: React.FC = () => {
   );
 };
 
+
 export default SpeechInputScreen;
+
 
 const styles = StyleSheet.create({
   container: {

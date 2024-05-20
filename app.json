@@ -3,7 +3,7 @@
     "name": "TREK-A-COMM AI Translator",
     "slug": "trek-a-comm_ai_translator",
     "version": "1.0.0",
-    "orientation": "defsult",
+    "orientation": "default",
     "icon": "./assets/images/icon.jpg",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",

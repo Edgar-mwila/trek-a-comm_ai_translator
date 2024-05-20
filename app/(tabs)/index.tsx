@@ -11,12 +11,17 @@ import * as Speech from 'expo-speech';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+interface languages {
+  name: string,
+  tag: string
+}
+
 const SpeechInputScreen: React.FC = () => {
   const [selectedInputLanguage, setSelectedInputLanguage] = useState<string | undefined>('en');
   const [selectedOutputLanguage, setSelectedOutputLanguage] = useState<string | undefined>('es');
   const [translatedText, setTranslatedText] = useState<string>('');
   const [text, setText] = useState<string>('');
-  const languages = ['en', 'es'];
+  const languages: languages[] = [{name: 'english',tag: 'en'}, {name: 'spanish',tag: 'es'}];
   const [recording, setRecording] = useState<Audio.Recording | null>(null);
   const [permissionResponse, requestPermission] = Audio.usePermissions();
   const [modal, setModal] = useState(true);
@@ -163,7 +168,7 @@ const SpeechInputScreen: React.FC = () => {
             onValueChange={(itemValue) => setSelectedInputLanguage(itemValue)}
           >
             {languages.map((language, index) => (
-              <Picker.Item key={index} label={language} value={language} />
+              <Picker.Item key={index} label={language.name} value={language.tag} />
             ))}
           </Picker>
           <TouchableOpacity onPress={() => saveBookmark()} style={styles.translateButton}>
@@ -191,7 +196,7 @@ const SpeechInputScreen: React.FC = () => {
             onValueChange={(itemValue) => setSelectedOutputLanguage(itemValue)}
           >
             {languages.map((language, index) => (
-              <Picker.Item key={index} label={language} value={language} />
+              <Picker.Item key={index} label={language.name} value={language.tag} />
             ))}
           </Picker>
           <TouchableOpacity onPress={() => speak(translatedText)} style={styles.translateButton}>
